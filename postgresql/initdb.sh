@@ -6,7 +6,9 @@ CREATE TABLE "character" (
   "role" int,
   "name" varchar,
   "infobox" varchar,
-  "summary" varchar
+  "summary" varchar,
+  "comments" int,
+  "collects" int
 );
 CREATE TABLE "episode" (
   "id" serial PRIMARY KEY,
@@ -15,6 +17,7 @@ CREATE TABLE "episode" (
   "description" varchar,
   "airdate" varchar,
   "disc" int,
+  "duration" text,
   "subject_id" int,
   "sort" float,
   "type" int
@@ -25,7 +28,9 @@ CREATE TABLE "person" (
   "type" int,
   "career" varchar,
   "infobox" varchar,
-  "summary" varchar
+  "summary" varchar,
+  "comments" int,
+  "collects" int
 );
 CREATE TABLE "person-characters" (
   "id" serial PRIMARY KEY,
@@ -43,10 +48,13 @@ CREATE TABLE "subject" (
   "platform" int,
   "summary" varchar,
   "nsfw" boolean,
+  "date" varchar,
   "tags" varchar,
   "score" float,
   "score_details" varchar,
-  "rank" int
+  "rank" int,
+  "favorite" varchar,
+  "series" boolean
 );
 CREATE TABLE "subject-characters" (
   "id" serial PRIMARY KEY,
@@ -83,5 +91,5 @@ for file in "$ARCHIVE_DIR"/*; do
   table_header=$(head -n 1 "$file")
   quoted_header=$(echo "$table_header" | awk -F, -v OFS=',' '{for (i=1; i<=NF; i++) $i = "\"" $i "\""}1')
   echo "Copying data from $file to $table_name table..."
-  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\COPY \"$table_name\"($quoted_header) FROM '$file' WITH NULL AS '' DELIMITER ',' CSV HEADER";
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "\COPY \"$table_name\"($quoted_header) FROM '$file' WITH (DELIMITER ',', ON_ERROR ignore, FORMAT CSV, HEADER)";
 done
