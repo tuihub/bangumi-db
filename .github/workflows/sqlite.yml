@@ -1,0 +1,28 @@
+name: Publish SQLite catalog
+on: workflow_dispatch
+permissions:
+  contents: write
+concurrency: sqlite-publication
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Convert upstream dump
+        run: |
+          curl -fsSL --retry 3 https://raw.githubusercontent.com/bangumi/Archive/master/aux/latest.json -o source.json
+          url=$(jq -er '.browser_download_url' source.json)
+          curl -fL --retry 3 "$url" -o archive.zip
+          digest=$(jq -er '.digest | sub("^sha256:";"")' source.json)
+          echo "$digest  archive.zip" | sha256sum -c -
+          python3 sqlite/build.py archive.zip bangumi.sqlite
+      - name: Publish compressed database and checksum
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gzip -n bangumi.sqlite
+          sha256sum bangumi.sqlite.gz > bangumi.sqlite.gz.sha256
+          if ! gh release view sqlite >/dev/null 2>&1; then
+            gh release create sqlite --title "SQLite catalog" --notes "Current public catalog from https://github.com/bangumi/Archive."
+          fi
+          gh release upload sqlite bangumi.sqlite.gz bangumi.sqlite.gz.sha256 --clobber
