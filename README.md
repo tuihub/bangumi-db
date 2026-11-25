@@ -40,5 +40,7 @@ cd sqlite
 docker compose run --build --rm sqlite
 ```
 
+### Release
+
 After **Publish SQLite catalog** runs in GitHub Actions, verify the checksum from the `sqlite` release and decompress `bangumi.sqlite.gz`.  
 GitHub Actions 中的 **Publish SQLite catalog** 运行后，从 `sqlite` 发布页下载校验文件和 `bangumi.sqlite.gz`，校验后解压。  
