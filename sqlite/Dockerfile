@@ -1,5 +1,9 @@
 FROM python:3.12-slim-bookworm
 
-COPY build.py /app/build.py
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl jq \
+    && rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["python3", "/app/build.py"]
+COPY build.py initdb.sh /app/
+
+ENTRYPOINT ["sh", "/app/initdb.sh"]

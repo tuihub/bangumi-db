@@ -3,4 +3,4 @@ services:
     build: ./
     volumes:
       - ./data:/data
-    command: [/data/archive.zip, /data/bangumi.sqlite]
+    command: [/data/bangumi.sqlite]

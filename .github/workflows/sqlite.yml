@@ -9,13 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Convert upstream dump
-        run: |
-          curl -fsSL --retry 3 https://raw.githubusercontent.com/bangumi/Archive/master/aux/latest.json -o source.json
-          url=$(jq -er '.browser_download_url' source.json)
-          curl -fL --retry 3 "$url" -o archive.zip
-          digest=$(jq -er '.digest | sub("^sha256:";"")' source.json)
-          echo "$digest  archive.zip" | sha256sum -c -
-          python3 sqlite/build.py archive.zip bangumi.sqlite
+        run: sh sqlite/initdb.sh bangumi.sqlite
       - name: Publish compressed database and checksum
         env:
           GH_TOKEN: ${{ github.token }}
