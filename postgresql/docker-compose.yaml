@@ -1,7 +1,11 @@
 version: "3"
 services:
   bangumi-archive:
-    build: ./
+    build:
+      context: ..
+      dockerfile: postgresql/Dockerfile
+      args:
+        - ASSET_DOWNLOAD_URL
     privileged: false
     restart: always
     ports:
