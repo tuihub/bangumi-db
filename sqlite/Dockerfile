@@ -6,5 +6,6 @@ RUN apt-get update \
 
 COPY schema/bangumi.sql /app/schema/
 COPY sqlite/build.py sqlite/initdb.sh /app/sqlite/
+RUN sed -i 's/\r$//' /app/sqlite/initdb.sh
 
 ENTRYPOINT ["sh", "/app/sqlite/initdb.sh"]
