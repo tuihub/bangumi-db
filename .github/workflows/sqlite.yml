@@ -1,5 +1,8 @@
 name: Publish SQLite catalog
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 23 * * 0" # Runs every Monday at 07:30 China Standard Time.
 permissions:
   contents: write
 concurrency: sqlite-publication
@@ -8,15 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Convert upstream dump
-        run: sh sqlite/initdb.sh bangumi.sqlite
-      - name: Publish compressed database and checksum
+      - name: Build SQLite database
+        run: sh sqlite/initdb.sh bangumi.sqlite "$RUNNER_TEMP/bangumi-source.json"
+      - name: Publish ZIP archive and checksum
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gzip -n bangumi.sqlite
-          sha256sum bangumi.sqlite.gz > bangumi.sqlite.gz.sha256
+          archive_name=$(jq -er '.name | select(type == "string" and endswith(".zip") and (contains("/") | not))' "$RUNNER_TEMP/bangumi-source.json")
+          zip -q -6 "./$archive_name" bangumi.sqlite
+          sha256sum -- "$archive_name" > "$archive_name.sha256"
           if ! gh release view sqlite >/dev/null 2>&1; then
-            gh release create sqlite --title "SQLite catalog" --notes "Current public catalog from https://github.com/bangumi/Archive."
+            gh release create sqlite --title "SQLite catalog" --notes "Prebuilt SQLite databases from [Bangumi Archive dumps](https://github.com/bangumi/Archive)."
           fi
-          gh release upload sqlite bangumi.sqlite.gz bangumi.sqlite.gz.sha256 --clobber
+          gh release upload sqlite "./$archive_name" "./$archive_name.sha256" --clobber

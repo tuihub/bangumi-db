@@ -1,6 +1,10 @@
 services:
   sqlite:
-    build: ./
+    build:
+      context: ..
+      dockerfile: sqlite/Dockerfile
+    environment:
+      - ASSET_DOWNLOAD_URL
     volumes:
       - ./data:/data
     command: [/data/bangumi.sqlite]
